@@ -3,6 +3,9 @@
     "editor.suggestOnTriggerCharacters": false,
     "editor.wordBasedSuggestions": "off",
     "editor.snippetSuggestions": "none",
-    "C_Cpp.intelliSenseEngine": "Disabled"
+    "C_Cpp.intelliSenseEngine": "Disabled",
+    "files.associations": {
+        "stdio.h": "c"
+    }
 }
 
