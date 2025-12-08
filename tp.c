@@ -34,7 +34,7 @@ int convertirJugadas(char jugada[], int *fila, int *columna){
     char columnaChar = jugada[0];
     char filaChar = jugada[1];
 
-    if(columnaChar < 'A' || columnaChar > 'H' || filaChar < '0' || filaChar > '8'){
+    if(columnaChar < 'A' || columnaChar > 'H' || filaChar < '1' || filaChar > '8'){
         return 0;
     }
 
@@ -83,16 +83,30 @@ int main(int argc, char* argv[]){
     while(fscanf(puntero_archivo, "%s", buffer) != EOF){
         int fila, columna;
         char colorActual = (turno % 2 == 0) ? primero : segundo;
-        
-        if(!convertirJugadas(buffer, fila, columna)){
-            jugadaInvalida(size, tablero, colorActual);
+        char *nombreActual = (colorActual == color1) ? nombre1 : nombre2;
+
+        if(!convertirJugadas(buffer, &fila, &columna)){
+            jugadaInvalida(size, tablero, buffer, nombreActual);
             fclose(puntero_archivo);
             return 0;
         }
 
+        if(!esJugadaValida(size, tablero, fila, columna, colorActual)){
+            jugadaInvalida(size, tablero, buffer, nombreActual);
+            fclose(puntero_archivo);
+            return 0;
+        }
+
+        aplicarJugada(size, tablero, fila, columna, colorActual);
         turno++;
     }
-    
+
+    char colorActual = (turno % 2 == 0) ? primero : segundo;
+    char colorSiguiente = (turno % 2 == 0) ? primero : segundo;
+    char *nombreActual = (colorActual == color1) ? nombre1 : nombre2;
+    char *nombreSiguiente = (colorSiguiente == color1) ? nombre1 : nombre2;
+
+    estadoJuego(size, tablero, colorActual, colorSiguiente, nombreActual, nombreSiguiente);
 
     fclose(puntero_archivo);
     return 0;
