@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "tablero.h"
 
+
 void incializarTablero(int SIZE, Celda tablero[SIZE][SIZE]){
     for(int i = 0; i < SIZE; i++){
         for(int j = 0; j < SIZE; j++){
@@ -35,16 +36,101 @@ void jugadaInvalida(int size, Celda tablero[size][size], char jugada[], char col
 
 
 int esJugadaValida(int size, Celda tablero[size][size], int fila, int col, char color){
-    
+    if(tablero[fila][col].ficha != 'X'){
+        return 0;
+    }
+
+    char rival = (color == 'B') ? 'N' : 'B';
+
+    int dirFila[] = {-1,-1,-1, 0,0, +1,+1,+1};
+    int dirCol[] = {-1, 0,+1,-1,+1,-1, 0,+1};
+
+    for(int d = 0; d < 8; d++){
+        int f = fila + dirFila[d];
+        int c = col + dirCol[d];
+
+        if(f < 0 || f >= size || c < 0 || c >= size) continue;
+        if(tablero[f][c].ficha != rival) continue;
+
+        f += dirFila[d];
+        c += dirCol[d];
+
+        while(f >= 0 && f < size && c >= 0 && c < size){
+            if(tablero[f][c].ficha == 'X'){
+                break; // no sirve
+            }
+            if(tablero[f][c].ficha == color){
+                return 1;
+            }
+            f += dirFila[d];
+            c += dirCol[d];
+        }
+    }
+
+    return 0;
 }
 
 
-int existeJugada(int size, Celda tablero[size][size], char colorSiguiente){
+void aplicarJugada(int size, Celda tablero[size][size], int fila, int col, char color) {
+    char rival = (color == 'B') ? 'N' : 'B';
+
+    // Colocamos la ficha
+    tablero[fila][col].ficha = color;
+
+    int dirFila[] = {-1,-1,-1, 0,0, +1,+1,+1};
+    int dirCol [] = {-1, 0,+1,-1,+1,-1, 0,+1};
+
+    for(int d = 0; d < 8; d++){
+        int df = dirFila[d];
+        int dc = dirCol[d];
+
+        int f = fila + df;
+        int c = col + dc;
+
+        if(f < 0 || f >= size || c < 0 || c >= size)
+            continue;
+
+        if(tablero[f][c].ficha != rival)
+            continue;
+
+        f += df;
+        c += dc;
+
+        while(f >= 0 && f < size && c >= 0 && c < size && tablero[f][c].ficha == rival){
+            f += df;
+            c += dc;
+        }
+
+        // Si salimos del tablero → no captura
+        if(f < 0 || f >= size || c < 0 || c >= size)
+            continue;
+
+        // Si encontramos vacío → no captura
+        if(tablero[f][c].ficha == 'X')
+            continue;
+
+        // Si encontramos ficha propia → captura
+        if(tablero[f][c].ficha == color){
+            // Voltear hacia atrás hasta llegar a la casilla original
+            int backF = f - df;
+            int backC = c - dc;
+
+            while(backF != fila || backC != col){
+                tablero[backF][backC].ficha = color;
+                backF -= df;
+                backC -= dc;
+            }
+        }
+    }
+}
+
+
+int existeJugada(int size, Celda tablero[size][size], char color){
     for(int i=0; i < size; i++){
         for(int j=0; j < size; j++){
             // Probar casillas vacias
             if(tablero[i][j].ficha == 'X'){
-                if(esJugadaValida(size, tablero, i, j, colorSiguiente)){
+                if(esJugadaValida(size, tablero, i, j, color)){
                     return 1;
                 }
             }
