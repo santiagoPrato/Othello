@@ -97,6 +97,7 @@ def turnoJugador(tablero, color):
         fila, col = coords
         if jugadaValida(tablero, fila, col, color):
             aplicarJugada(tablero, fila, col, color)
+            
             print("Tablero después de su jugada:")
             imprimirTablero(tablero)
             return
@@ -118,10 +119,6 @@ def jugadasPosibles(tablero, color):
 
 def nivel0(tablero, color):
     posibles = jugadasPosibles(tablero, color)
-
-    if not posibles:
-        print("La computadora no tiene jugadas")
-        return
     
     jugada = random.choice(posibles)
     aplicarJugada(tablero, jugada[0], jugada[1], color)
