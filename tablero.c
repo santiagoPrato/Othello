@@ -106,7 +106,7 @@ void aplicarJugada(int size, Celda tablero[size][size], int fila, int col, char 
         if(tablero[f][c].ficha == 'X')
             continue;
 
-        // Si encontramos ficha propia → captura
+        // Si encontramos ficha propia, captura
         if(tablero[f][c].ficha == color){
             // Voltear hacia atrás hasta llegar a la casilla original
             int backF = f - df;
@@ -150,6 +150,28 @@ int contarFichas(int size, Celda tablero[size][size], char color){
 }
 
 
+void guardarArchivoParaPython(int size, Celda tablero[size][size], char colorSiguiente) {
+    FILE *salida = fopen("tablero_python.txt", "w");
+    if (!salida) {
+        printf("Error al crear tablero_python.txt\n");
+        return;
+    }
+
+    // Guardar tablero: 8 lineas de 8 caracteres
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+            fprintf(salida, "%c", tablero[i][j].ficha);
+        }
+        fprintf(salida, "\n");
+    }
+
+    // 9na linea: color que debe jugar
+    fprintf(salida, "%c\n", colorSiguiente);
+
+    fclose(salida);
+}
+
+
 void estadoJuego(int size, Celda tablero[size][size], char colorActual, char colorSiguiente, char nombreActual[], char nombreSiguiente[]) {
     imprimirTablero(size, tablero);
 
@@ -159,16 +181,18 @@ void estadoJuego(int size, Celda tablero[size][size], char colorActual, char col
     // Caso 1: La partida continua
     if (puedeSiguiente) {
         printf("\nJuega: %c", colorSiguiente);
+        guardarArchivoParaPython(size, tablero, colorSiguiente);
         return;
     }
 
-    // Caso 2: El siguiente no puede jugar, pero el actual si → se saltea turno
+    // Caso 2: El siguiente no puede jugar, pero el actual si, se saltea turno
     if (!puedeSiguiente && puedeActual) {
         printf("\n%c no tiene jugadas. Juega nuevamente %c ", colorSiguiente, colorActual);
+        guardarArchivoParaPython(size, tablero, colorActual);
         return;
     }
 
-    // Caso 3: Ninguno puede jugar → fin del juego
+    // Caso 3: Ninguno puede jugar, fin del juego
     int fichasActual = contarFichas(size, tablero, colorActual);
     int fichasSiguiente = contarFichas(size, tablero, colorSiguiente);
 

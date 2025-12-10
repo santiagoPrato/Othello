@@ -1,12 +1,33 @@
-def cargarTableroDesdeArchivo(nombre_archivo):
+def leerTablero(path):
+    with open(path, "r") as f:
+        lineas = [line.strip() for line in f.readlines()]
+
+    if len(lineas) < 9:
+        error = "El archivo no contiene un tablero válido."
+        raise ValueError(error)
+
     tablero = []
-    with open(nombre_archivo, "r") as f:
-        for linea in f:
-            linea = linea.strip()
-            if len(linea) == 0:
-                continue
-            tablero.append(list(linea))
+    for i in range(8):
+        fila = list(lineas[i])
+        if len(fila) != 8:
+            raise ValueError(f"La fila {i+1} del tablero no tiene 8 columnas")
+        tablero.append(fila)
+
     return tablero
+
+def leerColorInicial(path):
+    with open(path, "r") as f:
+        # Saltar las primeras 8 líneas
+        for i in range(8):
+            f.readline()
+
+        color = f.readline().strip()
+
+    if color not in ("B", "N"):
+        error = "El color inicial debe ser 'B' o 'N'."
+        raise ValueError(error)
+
+    return color
 
 
 def imprimirTablero(tablero):
@@ -196,7 +217,7 @@ def contadorFichas(tablero, color_jugador, color_pc):
     return  cant_fichas_j, cant_fichas_pc
 
 def main(nombre_archivo, color_jugador):
-    tablero = cargarTableroDesdeArchivo(nombre_archivo)
+    tablero = leerTablero(nombre_archivo)
 
     print("Tablero inicial:")
     imprimirTablero(tablero)
@@ -205,7 +226,7 @@ def main(nombre_archivo, color_jugador):
 
     color_pc = 'B' if color_jugador == 'N' else 'N'
 
-    turno = color_jugador
+    turno = leerColorInicial(nombre_archivo)
 
     while True:
         posibles = jugadasPosibles(tablero, turno)
