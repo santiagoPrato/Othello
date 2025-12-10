@@ -42,14 +42,14 @@ int convertirJugadas(char jugada[], int *fila, int *columna){
     }
 
     *columna = columnaChar - 'A';
-    *fila = filaChar - '0';
+    *fila = filaChar - '1';
 
     return 1;
 }
 
 
 int procesarJugadasDesdeArchivo(FILE *puntero_archivo, int size, Celda tablero[size][size], char primero, 
-    char segundo, char color1, char color2, char *nombre1, char *nombre2, int *turnoFinal){
+    char segundo, char color1, char *nombre1, char *nombre2, int *turnoFinal){
     int turno = 0;
     char buffer[3];
 
@@ -72,10 +72,7 @@ int procesarJugadasDesdeArchivo(FILE *puntero_archivo, int size, Celda tablero[s
         }
 
         // Aplicación
-        if(!aplicarTablero(size, tablero, fila, columna, colorActual)){
-            jugadaInvalida(size, tablero, buffer, nombreActual);
-            return 0;
-        }
+        aplicarJugada(size, tablero, fila, columna, colorActual);
 
         *turnoFinal = turno;
         turno++;
@@ -119,13 +116,13 @@ int main(int argc, char* argv[]){
 
     // Leer la 4 línea a EOF
     int turnoFinal;
-    if(!procesarJugadasDesdeArchivo(puntero_archivo, size, tablero, primero, segundo, color1, color2, nombre1, nombre2, &turnoFinal)){
+    if(!procesarJugadasDesdeArchivo(puntero_archivo, size, tablero, primero, segundo, color1, nombre1, nombre2, &turnoFinal)){
         fclose(puntero_archivo);
         return 0;
     }
 
     char colorActual = (turnoFinal % 2 == 0) ? primero : segundo;
-    char colorSiguiente = (turnoFinal % 2 == 0) ? primero : segundo;
+    char colorSiguiente = (colorActual == primero) ? segundo : primero;
     char *nombreActual = (colorActual == color1) ? nombre1 : nombre2;
     char *nombreSiguiente = (colorSiguiente == color1) ? nombre1 : nombre2;
 

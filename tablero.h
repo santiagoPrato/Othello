@@ -7,7 +7,7 @@ typedef struct {
 } Celda;
 
 void inicializarTablero(int size, Celda tablero[size][size]);
-void jugadaInvalida(int size, Celda tablero[size][size], char jugada[], char colorActual);
+void jugadaInvalida(int size, Celda tablero[size][size], char jugada[], char nombreJugador[]);
 int esJugadaValida(int size, Celda tablero[size][size], int fila, int col, char color);
 void aplicarJugada(int size, Celda tablero[size][size], int fila, int col, char color);
 int existeJugada(int size, Celda tablero[size][size], char color);

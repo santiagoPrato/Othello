@@ -2,7 +2,7 @@
 #include "tablero.h"
 
 
-void incializarTablero(int SIZE, Celda tablero[SIZE][SIZE]){
+void inicializarTablero(int SIZE, Celda tablero[SIZE][SIZE]){
     for(int i = 0; i < SIZE; i++){
         for(int j = 0; j < SIZE; j++){
             tablero[i][j].ficha = 'X';
@@ -10,10 +10,10 @@ void incializarTablero(int SIZE, Celda tablero[SIZE][SIZE]){
     }
 
     // Fichas iniciales de Othello
-    tablero[(SIZE/2)-1][(SIZE/2)-1].ficha = 'N';
-    tablero[(SIZE/2)-1][SIZE/2].ficha = 'B';
-    tablero[SIZE/2][(SIZE/2)-1].ficha = 'B';
-    tablero[SIZE/2][SIZE/2].ficha = 'N';
+    tablero[(SIZE/2)-1][(SIZE/2)-1].ficha = 'B';
+    tablero[(SIZE/2)-1][SIZE/2].ficha = 'N';
+    tablero[SIZE/2][(SIZE/2)-1].ficha = 'N';
+    tablero[SIZE/2][SIZE/2].ficha = 'B';
 }
 
 
@@ -27,10 +27,8 @@ void imprimirTablero(int size, Celda tablero[size][size]){
 }
 
 
-void jugadaInvalida(int size, Celda tablero[size][size], char jugada[], char colorActual){
-    printf("Jugada invalida %s cometida por %s ", jugada, colorActual);
-
-    printf("Tablero hasta la jugada inválida:\n");
+void jugadaInvalida(int size, Celda tablero[size][size], char jugada[], char nombreJugador[]){
+    printf("Jugada invalida %s cometida por %s\n", jugada, nombreJugador);
     imprimirTablero(size, tablero);
 }
 
@@ -101,11 +99,10 @@ void aplicarJugada(int size, Celda tablero[size][size], int fila, int col, char 
             c += dc;
         }
 
-        // Si salimos del tablero → no captura
+
         if(f < 0 || f >= size || c < 0 || c >= size)
             continue;
 
-        // Si encontramos vacío → no captura
         if(tablero[f][c].ficha == 'X')
             continue;
 
@@ -157,7 +154,7 @@ void estadoJuego(int size, Celda tablero[size][size], char colorActual, char col
     imprimirTablero(size, tablero);
 
     int puedeSiguiente = existeJugada(size, tablero, colorSiguiente);
-    int puedeActual    = existeJugada(size, tablero, colorActual);
+    int puedeActual = existeJugada(size, tablero, colorActual);
 
     // Caso 1: La partida continua
     if (puedeSiguiente) {
@@ -167,12 +164,12 @@ void estadoJuego(int size, Celda tablero[size][size], char colorActual, char col
 
     // Caso 2: El siguiente no puede jugar, pero el actual si → se saltea turno
     if (!puedeSiguiente && puedeActual) {
-        printf("\n%s no tiene jugadas. Juega nuevamente %s ", colorSiguiente, colorActual);
+        printf("\n%c no tiene jugadas. Juega nuevamente %c ", colorSiguiente, colorActual);
         return;
     }
 
     // Caso 3: Ninguno puede jugar → fin del juego
-    int fichasActual    = contarFichas(size, tablero, colorActual);
+    int fichasActual = contarFichas(size, tablero, colorActual);
     int fichasSiguiente = contarFichas(size, tablero, colorSiguiente);
 
     printf("\nFin del juego.\n");
