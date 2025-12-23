@@ -6,14 +6,22 @@ typedef struct {
     char ficha;        // 'B', 'N' o 'X'
 } Celda;
 
-void inicializarTablero(int size, Celda tablero[size][size]);
-void jugadaInvalida(int size, Celda tablero[size][size], char jugada[], char nombreJugador[]);
-int esJugadaValida(int size, Celda tablero[size][size], int fila, int col, char color);
-void aplicarJugada(int size, Celda tablero[size][size], int fila, int col, char color);
-int existeJugada(int size, Celda tablero[size][size], char color);
-int contarFichas(int size, Celda tablero[size][size], char color);
-void guardarArchivoParaPython(int size, Celda tablero[size][size], char colorSiguiente);
-void estadoJuego(int size, Celda tablero[size][size],char colorActual, char colorSiguiente, char jugadorActual[], char jugadorSiguiente[]);
-void imprimirTablero(int size, Celda tablero[size][size]);
+typedef struct {
+    Celda celdas[8][8];
+} Tablero;
+
+void inicializarTablero(Tablero *t);
+void imprimirTablero(const Tablero *t);
+
+void jugadaInvalida(const Tablero *t, const char jugada[], const char nombreJugador[]);
+int esJugadaValida(const Tablero *t, int fila, int col, char color);
+void aplicarJugada(Tablero *t, int fila, int col, char color);
+
+int existeJugada(const Tablero *t, char color);
+int contarFichas(const Tablero *t, char color);
+
+void guardarArchivoParaPython(const Tablero *t, char colorSiguiente);
+
+void estadoJuego(const Tablero *t, char colorActual, char colorSiguiente,const char jugadorActual[], const char jugadorSiguiente[]);
 
 #endif

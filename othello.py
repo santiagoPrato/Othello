@@ -1,11 +1,4 @@
-def leerTablero(path):
-    with open(path, "r") as f:
-        lineas = [line.strip() for line in f.readlines()]
-
-    if len(lineas) < 9:
-        error = "El archivo no contiene un tablero válido."
-        raise ValueError(error)
-
+def leerTablero(lineas):
     tablero = []
     for i in range(8):
         fila = list(lineas[i])
@@ -15,17 +8,9 @@ def leerTablero(path):
 
     return tablero
 
-def leerColorInicial(path):
-    with open(path, "r") as f:
-        # Saltar las primeras 8 líneas
-        for i in range(8):
-            f.readline()
-
-        color = f.readline().strip()
-
+def leerColorInicial(color):
     if color not in ("B", "N"):
-        error = "El color inicial debe ser 'B' o 'N'."
-        raise ValueError(error)
+        raise ValueError("El color inicial debe ser 'B' o 'N'")
 
     return color
 
@@ -89,8 +74,6 @@ def aplicarJugada(tablero, fila, col, color):
 
     dirs = [(-1,-1), (-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0), (1,1)]
 
-    valido = False
-
     for df, dc in dirs:
         f = fila + df
         c = col + dc
@@ -140,6 +123,8 @@ def jugadasPosibles(tablero, color):
 
 def nivel0(tablero, color):
     posibles = jugadasPosibles(tablero, color)
+    if not posibles:
+        return
     
     jugada = random.choice(posibles)
     aplicarJugada(tablero, jugada[0], jugada[1], color)
@@ -216,40 +201,30 @@ def contadorFichas(tablero, color_jugador, color_pc):
 
     return  cant_fichas_j, cant_fichas_pc
 
-def main(nombre_archivo, color_jugador):
-    tablero = leerTablero(nombre_archivo)
 
-    print("Tablero inicial:")
-    imprimirTablero(tablero)
+def mostrarResultadoFinal(tablero, color_jugador, color_pc):
+    cant_j, cant_pc = contadorFichas(tablero, color_jugador, color_pc)
 
-    modo = input("Elija el modo de juego (0 o 1): ").strip()
+    print("\nFin de la partida")
+    print(f"Fichas jugador ({color_jugador}): {cant_j}")
+    print(f"Fichas computadora ({color_pc}): {cant_pc}")
 
-    color_pc = 'B' if color_jugador == 'N' else 'N'
+    if cant_j > cant_pc:
+        print("Ganó el jugador")
+    elif cant_pc > cant_j:
+        print("Ganó la computadora")
+    else:
+        print("Empate")
 
-    turno = leerColorInicial(nombre_archivo)
 
-    while True:
-        posibles = jugadasPosibles(tablero, turno)
+def ejecutarPartida(tablero, turno, color_jugador, color_pc, modo):
+    while jugadasPosibles(tablero, 'B') or jugadasPosibles(tablero, 'N'):
 
-        if not posibles:
-            print(f"No hay jugadas disponibles para {turno}")
-            
-            otro = turno = color_pc if turno == color_jugador else color_jugador
-            if not jugadasPosibles(tablero, otro):
-                print("Ningún jugador tiene jugadas. Fin de la partida")
-                cant_fichas_j, cant_fichas_pc = contadorFichas(tablero, color_jugador, color_pc)
-
-                if cant_fichas_j < cant_fichas_pc:
-                    print("Ganó la pc")
-                elif cant_fichas_pc < cant_fichas_j:
-                    print("Ganó el jugador")
-                else:
-                    print("Empate")
-                break
-
-            turno = otro
+        if not jugadasPosibles(tablero, turno):
+            print(f"{turno} no tiene jugadas, se salta el turno")
+            turno = color_pc if turno == color_jugador else color_jugador
             continue
-        
+
         if turno == color_jugador:
             turnoJugador(tablero, turno)
         else:
@@ -259,3 +234,32 @@ def main(nombre_archivo, color_jugador):
                 nivel1(tablero, turno)
 
         turno = color_pc if turno == color_jugador else color_jugador
+
+    mostrarResultadoFinal(tablero, color_jugador, color_pc)
+
+
+def main(nombre_archivo, color_jugador, modo):
+    with open(nombre_archivo, "r") as f:
+        lineas = [line.strip() for line in f.readlines()]
+
+        if len(lineas) < 9:
+            raise ValueError("El archivo no contiene un tablero válido.")
+        
+    tablero = leerTablero(lineas[:8])
+    turno = leerColorInicial(lineas[8])
+
+    print("Tablero inicial:")
+    imprimirTablero(tablero)
+
+    color_pc = 'B' if color_jugador == 'N' else 'N'
+
+    ejecutarPartida(tablero, turno, color_jugador, color_pc, modo)
+
+import sys
+
+if __name__ == "__main__":
+    if len(sys.argv) != 4:
+        print("Uso: ./othello.py archivo color modo")
+        sys.exit(1)
+
+    main(sys.argv[1], sys.argv[2], sys.argv[3])

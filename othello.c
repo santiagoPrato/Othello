@@ -4,54 +4,102 @@
 #include "tablero.h"
 
 
-void jugadoresAsignacion(FILE* archivo, char* nombre1, char* nombre2, char *color1, char *color2){
+int leerJugador(FILE *archivo, char **nombre, char *color) {
     char buffer[256];
+    char nombreTmp[256];
+    char colorTmp;
 
-    // Leer primera línea
-    if(fgets(buffer, sizeof(buffer), archivo) != NULL)
-        sscanf(buffer, "%[^,],%c", nombre1, color1);
-
-    // Leer segunda línea
-    if(fgets(buffer, sizeof(buffer), archivo) != NULL)
-        sscanf(buffer, "%[^,],%c", nombre2, color2);
-}
-
-
-char empezo(FILE* archivo){
-    char linea[256];
-    char caracter;
-
-    // Leer tercera línea
-    if(fgets(linea, sizeof(linea), archivo) != NULL)
-        caracter = linea[0];
-
-    return caracter;
-} 
-
-
-int convertirJugadas(char jugada[], int *fila, int *columna){
-    if(strlen(jugada) != 2){
+    if (!fgets(buffer, sizeof(buffer), archivo))
         return 0;
-    }
 
-    char columnaChar = jugada[0];
-    char filaChar = jugada[1];
-
-    if(columnaChar < 'A' || columnaChar > 'H' || filaChar < '1' || filaChar > '8'){
+    if (sscanf(buffer, "%255[^,],%c", nombreTmp, &colorTmp) != 2)
         return 0;
-    }
 
-    *columna = columnaChar - 'A';
-    *fila = filaChar - '1';
+    if (colorTmp != 'B' && colorTmp != 'N')
+        return 0;
+
+    *nombre = malloc(strlen(nombreTmp) + 1);
+    if (!*nombre)
+        return 0;
+
+    strcpy(*nombre, nombreTmp);
+    *color = colorTmp;
 
     return 1;
 }
 
 
-int procesarJugadasDesdeArchivo(FILE *puntero_archivo, int size, Celda tablero[size][size], char primero, 
-    char segundo, char color1, char *nombre1, char *nombre2, int *turnoFinal){
+char empezo(FILE* archivo){
+    char buffer[8];
+
+    if (!fgets(buffer, sizeof(buffer), archivo))
+        return 0;
+
+    if (buffer[0] != 'B' && buffer[0] != 'N')
+        return 0;
+
+    return buffer[0];
+}
+
+
+int leerJugador(FILE *archivo, char **nombre, char *color) {
+    char buffer[256];
+    char nombreTmp[256];
+    char colorTmp;
+
+    if (!fgets(buffer, sizeof(buffer), archivo))
+        return 0;
+
+    if (sscanf(buffer, "%255[^,],%c", nombreTmp, &colorTmp) != 2)
+        return 0;
+
+    if (colorTmp != 'B' && colorTmp != 'N')
+        return 0;
+
+    *nombre = malloc(strlen(nombreTmp) + 1);
+    if (!*nombre)
+        return 0;
+
+    strcpy(*nombre, nombreTmp);
+    *color = colorTmp;
+
+    return 1;
+}
+
+
+int verificarDatos(char *nombre1, char *nombre2, char color1, char color2){
+    if (!nombre1 || !nombre2) {
+        printf("No se pudieron leer los nombres de los jugadores\n");
+        return 0;
+    }
+    if(nombre1[0] == '\0'){
+        printf("Nombre del primer jugador vacio\n");
+        return 0;
+    }
+    if(nombre2[0] == '\0'){
+        printf("Nombre del segundo jugador vacio\n");
+        return 0;   
+    }
+    if(color1 != 'B' && color1 != 'N'){
+        printf("Color del primer jugador invalido\n");
+        return 0;
+    }
+    if(color2 != 'B' && color2 != 'N'){
+        printf("Color del segundo jugador invalido\n");
+        return 0;
+    }
+    if(color1 == color2){
+        printf("Ambos jugadores tienen el mismo color\n");
+        return 0;
+    }
+    return 1;
+}
+
+
+int procesarJugadasDesdeArchivo(FILE *puntero_archivo, Tablero *t, char primero, 
+                    char segundo, char color1, char *nombre1, char *nombre2, int *turnoFinal){
     int turno = 0;
-    char buffer[3];
+    char buffer[4];
 
     while(fscanf(puntero_archivo, "%s", buffer) != EOF){
         int fila, columna;
@@ -61,18 +109,18 @@ int procesarJugadasDesdeArchivo(FILE *puntero_archivo, int size, Celda tablero[s
 
         // Conversión de jugada
         if(!convertirJugadas(buffer, &fila, &columna)){
-            jugadaInvalida(size, tablero, buffer, nombreActual);
+            jugadaInvalida(t, buffer, nombreActual);
             return 0;
         }
 
         // Validación
-        if(!esJugadaValida(size, tablero, fila, columna, colorActual)){
-            jugadaInvalida(size, tablero, buffer, nombreActual);
+        if(!esJugadaValida(t, fila, columna, colorActual)){
+            jugadaInvalida(t, buffer, nombreActual);
             return 0;
         }
 
         // Aplicación
-        aplicarJugada(size, tablero, fila, columna, colorActual);
+        aplicarJugada(t, fila, columna, colorActual);
 
         *turnoFinal = turno;
         turno++;
@@ -94,30 +142,46 @@ int main(int argc, char* argv[]){
     }
     
     // Asignar valores a las variables
-    char nombre1[100] = "", nombre2[100] = "";
-    char color1 = '\0', color2 = '\0';
-    jugadoresAsignacion(puntero_archivo, nombre1, nombre2, &color1, &color2);
-
-    char primero = empezo(puntero_archivo);
-    char segundo = (primero == color1) ? color2: color1;
-
-    // Verificar que ningun dato este vacio
-    if (nombre1[0] == '\0' || nombre2[0] == '\0' || color1 == '\0' || color2 == '\0') {
-        printf("Falta algún dato\n");
+    char *nombre1 = NULL;
+    char *nombre2 = NULL;
+    char color1 = '\0';
+    char color2 = '\0';
+    if (!leerJugador(puntero_archivo, &nombre1, &color1) || !leerJugador(puntero_archivo, &nombre2, &color2)) {
+        printf("Error al leer los jugadores\n");
         fclose(puntero_archivo);
         return 1;
     }
 
-    // Inicializar tablero
-    const int size = 8;
-    Celda tablero[size][size]; 
+    // Verificar que ningun dato este vacio
+    if(!verificarDatos(nombre1, nombre2, color1, color2)){
+        fclose(puntero_archivo);
+        free(nombre1);
+        free(nombre2);
+        return 1;
+    }
 
-    inicializarTablero(size, tablero);
+    char primero = empezo(puntero_archivo);
+    if (primero == '/0') {
+        printf("Error al leer el color que empezo\n");
+        fclose(puntero_archivo);
+        free(nombre1);
+        free(nombre2);
+        return 1;
+    }
+    char segundo = (primero == color1) ? color2: color1;
+
+
+
+    // Inicializar tablero
+    Tablero tablero;
+    inicializarTablero(&tablero);
 
     // Leer la 4 línea a EOF
     int turnoFinal;
-    if(!procesarJugadasDesdeArchivo(puntero_archivo, size, tablero, primero, segundo, color1, nombre1, nombre2, &turnoFinal)){
+    if(!procesarJugadasDesdeArchivo(puntero_archivo, &tablero, primero, segundo, color1, nombre1, nombre2, &turnoFinal)){
         fclose(puntero_archivo);
+        free(nombre1);
+        free(nombre2);
         return 0;
     }
 
@@ -126,8 +190,10 @@ int main(int argc, char* argv[]){
     char *nombreActual = (colorActual == color1) ? nombre1 : nombre2;
     char *nombreSiguiente = (colorSiguiente == color1) ? nombre1 : nombre2;
 
-    estadoJuego(size, tablero, colorActual, colorSiguiente, nombreActual, nombreSiguiente);
+    estadoJuego(&tablero, colorActual, colorSiguiente, nombreActual, nombreSiguiente);
 
     fclose(puntero_archivo);
+    free(nombre1);
+    free(nombre2);
     return 0;
 }
