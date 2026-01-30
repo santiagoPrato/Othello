@@ -279,7 +279,7 @@ int main(int argc, char* argv[]){
     /* Determinar qué jugador comenzó el juego */
     char primero = empezo(puntero_archivo);
     if (primero == '\0') {  // Corregido: era '/0' (incorrecto)
-        printf("Error al leer el color que empezo\n");
+        printf("Error al leer el color que empezó\n");
         fclose(puntero_archivo);
         free(nombre1);
         free(nombre2);

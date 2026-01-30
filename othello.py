@@ -167,7 +167,7 @@ def aplicarJugada(tablero, fila, col, color):
             c += dc
 
         # Si encontramos una ficha propia al final, voltear todas las del oponente
-        if dar_vuelta and 0 <= f < 8 and 0 <= c < 8 and tablero[f][c]:
+        if dar_vuelta and 0 <= f < 8 and 0 <= c < 8 and tablero[f][c] == color:
             for (fx, cx) in dar_vuelta:
                 tablero[fx][cx] = color
 
@@ -247,7 +247,7 @@ def nivel0(tablero, color):
     # Convertir coordenadas a notación algebraica para mostrar
     colLetra = chr(jugada[1] + ord('A'))
     filNum = jugada[0] + 1
-    print(f"La computadora eligio: {colLetra}{filNum}")
+    print(f"La computadora eligió: {colLetra}{filNum}")
     imprimirTablero(tablero)
         
 
@@ -343,7 +343,7 @@ def nivel1(tablero, color):
     # Convertir coordenadas a notación algebraica para mostrar
     colLetra = chr(mejor_jugada[1] + ord('A'))
     filNum = mejor_jugada[0] + 1
-    print(f"La computadora eligio: {colLetra}{filNum}")
+    print(f"La computadora eligió: {colLetra}{filNum}")
     imprimirTablero(tablero)
 
 
