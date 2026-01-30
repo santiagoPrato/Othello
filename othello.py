@@ -282,7 +282,7 @@ def mostrarResultadoFinal(tablero, color_jugador, color_pc):
 
 def ejecutarPartida(tablero, turno, color_jugador, color_pc, modo):
     """
-    Ejecuta el bucle principal del juego alternando turnos.
+    Ejecuta el bucle principal del juego alternando turnos
     """
     # Continuar mientras haya jugadas posibles para algún jugador
     while jugadasPosibles(tablero, 'B') or jugadasPosibles(tablero, 'N'):
