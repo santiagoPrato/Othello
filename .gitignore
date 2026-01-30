@@ -3,3 +3,4 @@
 tp
 __pycache__/
 *.pyc
+test_c
