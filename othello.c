@@ -3,7 +3,8 @@
 #include <string.h>
 #include "tablero.h"
 
-
+// Lee los datos de un jugador desde el archivo y verifica su formato.
+// Devuelve 1 si se obtuvo correctamente, 0 en caso de error.
 int leerJugador(FILE *archivo, char **nombre, char *color) {
     char buffer[256];
     char nombreTmp[256];
@@ -28,7 +29,8 @@ int leerJugador(FILE *archivo, char **nombre, char *color) {
     return 1;
 }
 
-
+// Determina el color del jugador que comenzó el juego a partir de la entrada.
+// Devuelve 'B' o 'N' en caso de éxito, o 0 si hubo un problema.
 char empezo(FILE* archivo){
     char buffer[8];
 
@@ -41,32 +43,8 @@ char empezo(FILE* archivo){
     return buffer[0];
 }
 
-
-int leerJugador(FILE *archivo, char **nombre, char *color) {
-    char buffer[256];
-    char nombreTmp[256];
-    char colorTmp;
-
-    if (!fgets(buffer, sizeof(buffer), archivo))
-        return 0;
-
-    if (sscanf(buffer, "%255[^,],%c", nombreTmp, &colorTmp) != 2)
-        return 0;
-
-    if (colorTmp != 'B' && colorTmp != 'N')
-        return 0;
-
-    *nombre = malloc(strlen(nombreTmp) + 1);
-    if (!*nombre)
-        return 0;
-
-    strcpy(*nombre, nombreTmp);
-    *color = colorTmp;
-
-    return 1;
-}
-
-
+// Verifica que los datos de los jugadores sean válidos (nombres no vacíos, colores válidos).
+// Devuelve 1 si todo es válido, 0 en caso de error.
 int verificarDatos(char *nombre1, char *nombre2, char color1, char color2){
     if (!nombre1 || !nombre2) {
         printf("No se pudieron leer los nombres de los jugadores\n");
@@ -131,17 +109,19 @@ int procesarJugadasDesdeArchivo(FILE *puntero_archivo, Tablero *t, char primero,
 
 int main(int argc, char* argv[]){
     if(argc < 2){
+        // Verificar si se proporcionó el archivo como argumento
         printf("Debe indicar el archivo como argumento\n");
         return 1;
     }
 
+    // Abrir el archivo en modo lectura
     FILE *puntero_archivo = fopen(argv[1], "r");
     if(puntero_archivo == NULL){
         printf("No es posible abrir este archivo");
         return 1;
     }
     
-    // Asignar valores a las variables
+    // Leer los nombres y colores de los jugadores
     char *nombre1 = NULL;
     char *nombre2 = NULL;
     char color1 = '\0';
@@ -152,7 +132,7 @@ int main(int argc, char* argv[]){
         return 1;
     }
 
-    // Verificar que ningun dato este vacio
+    // Verificar que los datos leídos sean válidos
     if(!verificarDatos(nombre1, nombre2, color1, color2)){
         fclose(puntero_archivo);
         free(nombre1);
@@ -160,6 +140,7 @@ int main(int argc, char* argv[]){
         return 1;
     }
 
+    // Determinar el jugador que comenzó el juego
     char primero = empezo(puntero_archivo);
     if (primero == '/0') {
         printf("Error al leer el color que empezo\n");
@@ -185,6 +166,7 @@ int main(int argc, char* argv[]){
         return 0;
     }
 
+    // Determinar el estado final del juego
     char colorActual = (turnoFinal % 2 == 0) ? primero : segundo;
     char colorSiguiente = (colorActual == primero) ? segundo : primero;
     char *nombreActual = (colorActual == color1) ? nombre1 : nombre2;
