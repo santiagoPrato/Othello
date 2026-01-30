@@ -1,15 +1,28 @@
+/*
+ * tablero.c - Implementación de las funciones del tablero de Othello
+ * 
+ * Este archivo implementa todas las funciones relacionadas con la gestión
+ * del tablero del juego Othello, incluyendo inicialización, validación de jugadas,
+ * aplicación de movimientos, y determinación del estado del juego.
+ */
+
 #include <stdio.h>
 #include "tablero.h"
 
 
 void inicializarTablero(Tablero *t){
+    /* Inicializar todas las celdas como vacías */
     for(int i = 0; i < 8; i++){
         for(int j = 0; j < 8; j++){
             t->celdas[i][j].ficha = 'X';
         }
     }
 
-    /* Fichas iniciales */
+    /* Colocar las fichas iniciales en el centro del tablero
+     * Configuración estándar de Othello:
+     *   D4 (3,3) = Blanca    E4 (3,4) = Negra
+     *   D5 (4,3) = Negra     E5 (4,4) = Blanca
+     */
     t->celdas[3][3].ficha = 'B';
     t->celdas[3][4].ficha = 'N';
     t->celdas[4][3].ficha = 'N';
@@ -18,6 +31,7 @@ void inicializarTablero(Tablero *t){
 
 
 void imprimirTablero(const Tablero *t){
+    /* Imprimir cada fila del tablero */
     for(int i=0; i < 8; i++){
         for(int j=0; j < 8; j++){
             printf("%c ", t->celdas[i][j].ficha);
@@ -28,43 +42,59 @@ void imprimirTablero(const Tablero *t){
 
 
 void jugadaInvalida(const Tablero *t, const char jugada[], const char nombreJugador[]){
+    /* Imprimir mensaje de error con la jugada y el jugador */
     printf("Jugada invalida %s cometida por %s\n", jugada, nombreJugador);
+    /* Mostrar el estado actual del tablero */
     imprimirTablero(t);
 }
 
 
 int esJugadaValida(const Tablero *t, int fila, int col, char color){
+    /* Verificar que la casilla esté vacía */
     if(t->celdas[fila][col].ficha != 'X'){
         return 0;
     }
 
+    /* Determinar el color del rival */
     char rival = (color == 'B') ? 'N' : 'B';
 
+    /* Vectores de dirección para las 8 direcciones posibles:
+     * (-1,-1) Noroeste   (-1,0) Norte    (-1,+1) Noreste
+     * ( 0,-1) Oeste                       ( 0,+1) Este
+     * (+1,-1) Suroeste   (+1,0) Sur      (+1,+1) Sureste
+     */
     int dirFila[] = {-1,-1,-1, 0,0, +1,+1,+1};
     int dirCol[] = {-1, 0,+1,-1,+1,-1, 0,+1};
 
+    /* Verificar cada una de las 8 direcciones */
     for(int d = 0; d < 8; d++){
         int f = fila + dirFila[d];
         int c = col + dirCol[d];
 
+        /* Saltar si la primera casilla en esta dirección está fuera del tablero */
         if(f < 0 || f >= 8 || c < 0 || c >= 8) continue;
+        /* Saltar si no hay una ficha rival en la primera posición */
         if(t->celdas[f][c].ficha != rival) continue;
 
+        /* Avanzar en esta dirección mientras haya fichas rivales */
         f += dirFila[d];
         c += dirCol[d];
 
         while(f >= 0 && f < 8 && c >= 0 && c < 8){
             if(t->celdas[f][c].ficha == 'X'){
-                break; // no sirve
+                break; // Casilla vacía, esta dirección no sirve
             }
             if(t->celdas[f][c].ficha == color){
+                /* Encontramos una ficha propia después de fichas rivales: jugada válida */
                 return 1;
             }
+            /* Continuar avanzando */
             f += dirFila[d];
             c += dirCol[d];
         }
     }
 
+    /* No se encontró ninguna dirección válida */
     return 0;
 }
 
@@ -72,12 +102,14 @@ int esJugadaValida(const Tablero *t, int fila, int col, char color){
 void aplicarJugada( Tablero *t, int fila, int col, char color) {
     char rival = (color == 'B') ? 'N' : 'B';
 
-    // Colocamos la ficha
+    /* Colocar la nueva ficha en la posición indicada */
     t->celdas[fila][col].ficha = color;
 
+    /* Vectores de dirección para las 8 direcciones posibles */
     int dirFila[] = {-1,-1,-1, 0,0, +1,+1,+1};
     int dirCol [] = {-1, 0,+1,-1,+1,-1, 0,+1};
 
+    /* Procesar cada dirección para voltear fichas capturadas */
     for(int d = 0; d < 8; d++){
         int df = dirFila[d];
         int dc = dirCol[d];
@@ -85,12 +117,15 @@ void aplicarJugada( Tablero *t, int fila, int col, char color) {
         int f = fila + df;
         int c = col + dc;
 
+        /* Verificar que la primera casilla esté dentro del tablero */
         if(f < 0 || f >= 8 || c < 0 || c >= 8)
             continue;
 
+        /* Verificar que haya una ficha rival en la primera posición */
         if(t->celdas[f][c].ficha != rival)
             continue;
 
+        /* Avanzar hasta encontrar el final de la cadena de fichas rivales */
         f += df;
         c += dc;
 
@@ -99,16 +134,17 @@ void aplicarJugada( Tablero *t, int fila, int col, char color) {
             c += dc;
         }
 
-
+        /* Verificar que no nos salimos del tablero */
         if(f < 0 || f >= 8 || c < 0 || c >= 8)
             continue;
 
+        /* Verificar que no terminamos en una casilla vacía */
         if(t->celdas[f][c].ficha == 'X')
             continue;
 
-        // Si encontramos ficha propia, captura
+        /* Si encontramos ficha propia, voltear todas las fichas rivales en medio */
         if(t->celdas[f][c].ficha == color){
-            // Voltear hacia atrás hasta llegar a la casilla original
+            /* Retroceder volteando fichas hasta llegar a la casilla original */
             int backF = f - df;
             int backC = c - dc;
 
@@ -123,22 +159,24 @@ void aplicarJugada( Tablero *t, int fila, int col, char color) {
 
 
 int existeJugada(const Tablero *t, char color){
+    /* Recorrer todo el tablero buscando al menos una jugada válida */
     for(int i=0; i < 8; i++){
         for(int j=0; j < 8; j++){
-            // Probar casillas vacias
+            /* Solo verificar casillas vacías */
             if(t->celdas[i][j].ficha == 'X'){
                 if(esJugadaValida(t, i, j, color)){
-                    return 1;
+                    return 1; // Encontramos al menos una jugada válida
                 }
             }
         }
     }
-    return 0;
+    return 0; // No hay jugadas válidas
 }
 
 
 int contarFichas(const Tablero *t, char color){
     int contador = 0;
+    /* Recorrer todo el tablero contando fichas del color especificado */
     for(int i = 0; i < 8; i++){
         for(int j = 0; j < 8; j++){
             if(t->celdas[i][j].ficha == color){
@@ -157,7 +195,7 @@ void guardarArchivoParaPython(const Tablero *t, char colorSiguiente) {
         return;
     }
 
-    // Guardar tablero: 8 lineas de 8 caracteres
+    /* Guardar el tablero: 8 líneas de 8 caracteres cada una */
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
             fprintf(salida, "%c", t->celdas[i][j].ficha);
@@ -165,7 +203,7 @@ void guardarArchivoParaPython(const Tablero *t, char colorSiguiente) {
         fprintf(salida, "\n");
     }
 
-    // 9na linea: color que debe jugar
+    /* Línea 9: color del jugador que debe jugar a continuación */
     fprintf(salida, "%c\n", colorSiguiente);
 
     fclose(salida);
@@ -173,26 +211,28 @@ void guardarArchivoParaPython(const Tablero *t, char colorSiguiente) {
 
 
 void estadoJuego(const Tablero *t, char colorActual, char colorSiguiente,const char jugadorActual[], const char jugadorSiguiente[]){
+    /* Mostrar el estado actual del tablero */
     imprimirTablero(t);
 
+    /* Verificar si cada jugador tiene jugadas disponibles */
     int puedeSiguiente = existeJugada(t, colorSiguiente);
     int puedeActual = existeJugada(t, colorActual);
     
-    // Caso 1: La partida continua
+    /* Caso 1: La partida continúa - el siguiente jugador tiene jugadas */
     if (puedeSiguiente) {
         printf("\nJuega: %c", colorSiguiente);
         guardarArchivoParaPython(t, colorSiguiente);
         return;
     }
 
-    // Caso 2: El siguiente no puede jugar, pero el actual si, se saltea turno
+    /* Caso 2: El siguiente no puede jugar, pero el actual sí - se salta el turno */
     if (!puedeSiguiente && puedeActual) {
         printf("\n%c no tiene jugadas. Juega nuevamente %c ", colorSiguiente, colorActual);
         guardarArchivoParaPython(t, colorActual);
         return;
     }
 
-    // Caso 3: Ninguno puede jugar, fin del juego
+    /* Caso 3: Ninguno puede jugar - fin del juego */
     int fichasActual = contarFichas(t, colorActual);
     int fichasSiguiente = contarFichas(t, colorSiguiente);
 
@@ -200,6 +240,7 @@ void estadoJuego(const Tablero *t, char colorActual, char colorSiguiente,const c
     printf("Fichas %s (%c): %d\n", jugadorActual, colorActual, fichasActual);
     printf("Fichas %s (%c): %d\n", jugadorSiguiente, colorSiguiente, fichasSiguiente);
 
+    /* Determinar y anunciar el ganador */
     if (fichasActual > fichasSiguiente)
         printf("Ganó %s\n", jugadorActual);
     else if (fichasSiguiente > fichasActual)
