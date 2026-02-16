@@ -210,6 +210,7 @@ void estadoJuego(const Tablero *t, char colorActual, char colorSiguiente,const c
     /* Caso 2: El siguiente no puede jugar, pero el actual sí - se salta el turno */
     if (!puedeSiguiente && puedeActual) {
         printf("\n%c no tiene jugadas. Juega nuevamente %c ", colorSiguiente, colorActual);
+        printf("Juega nuevamente: %c\n", colorActual);
         guardarArchivoParaPython(t, colorActual);
         return;
     }

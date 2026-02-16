@@ -138,37 +138,66 @@ int verificarDatos(char *nombre1, char *nombre2, char color1, char color2){
     Aplica cada jugada válida al tablero.
     Devuelve 1 si todas son válidas, 0 si encuentra una inválida.
  */
-int procesarJugadasDesdeArchivo(FILE *puntero_archivo, Tablero *t, char primero, 
-                    char segundo, char color1, char *nombre1, char *nombre2, int *turnoFinal){
+int procesarJugadasDesdeArchivo(FILE *puntero_archivo, Tablero *t, char primero, char segundo, char color1, char *nombre1, char *nombre2, int *turnoFinal){
     int turno = 0;
     char buffer[4];
 
-    /* Leer cada jugada del archivo hasta el final */
-    while(fscanf(puntero_archivo, "%s", buffer) != EOF){
+    char colorActual = primero;
+    char colorSiguiente = segundo;
+
+    while (1) {
+
+        /* 1. Verificar si el jugador actual puede jugar */
+        if (!existeJugada(t, colorActual)) {
+
+            /* Si ninguno puede jugar, fin de la partida */
+            if (!existeJugada(t, colorSiguiente)) {
+                *turnoFinal = turno;
+                return 1;
+            }
+
+            /* Pase de turno */
+            char aux = colorActual;
+            colorActual = colorSiguiente;
+            colorSiguiente = aux;
+            continue;
+        }
+
+        /* 2. Leer la jugada SOLO si puede jugar */
+        if (fscanf(puntero_archivo, "%3s", buffer) == EOF) {
+            *turnoFinal = turno;
+            return 1;
+        }
+
         int fila, columna;
+        char *nombreActual =
+            (colorActual == color1) ? nombre1 : nombre2;
 
-        /* Determinar de quién es el turno (alterna entre primero y segundo) */
-        char colorActual = (turno % 2 == 0) ? primero : segundo;
-        char *nombreActual = (colorActual == color1) ? nombre1 : nombre2;
-
-        if(!convertirJugadas(buffer, &fila, &columna)){
+        /* 3. Convertir jugada */
+        if (!convertirJugadas(buffer, &fila, &columna)) {
             jugadaInvalida(t, buffer, nombreActual);
             return 0;
         }
 
-        if(!esJugadaValida(t, fila, columna, colorActual)){
+        /* 4. Validar jugada */
+        if (!esJugadaValida(t, fila, columna, colorActual)) {
             jugadaInvalida(t, buffer, nombreActual);
             return 0;
         }
 
+        /* 5. Aplicar jugada */
         aplicarJugada(t, fila, columna, colorActual);
 
-        *turnoFinal = turno;
         turno++;
-    }
+        *turnoFinal = turno;
 
-    return 1;
+        /* 6. Cambiar turno */
+        char aux = colorActual;
+        colorActual = colorSiguiente;
+        colorSiguiente = aux;
+    }
 }
+
 
 /*
     main
