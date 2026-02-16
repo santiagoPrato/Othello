@@ -284,16 +284,26 @@ def ejecutarPartida(tablero, turno, color_jugador, color_pc, modo):
     """
     Ejecuta el bucle principal del juego alternando turnos
     """
-    # Continuar mientras haya jugadas posibles para algún jugador
-    while jugadasPosibles(tablero, 'B') or jugadasPosibles(tablero, 'N'):
+    while True:
+        puede_jugador = jugadasPosibles(tablero, color_jugador)
+        puede_pc = jugadasPosibles(tablero, color_pc)
 
-        # Si el jugador actual no tiene jugadas, saltar su turno
-        if not jugadasPosibles(tablero, turno):
+        # Si ninguno puede jugar → fin del juego
+        if not puede_jugador and not puede_pc:
+            break
+
+        # Si el turno actual no puede jugar → pasar turno
+        if turno == color_jugador and not puede_jugador:
             print(f"{turno} no tiene jugadas, se salta el turno")
-            turno = color_pc if turno == color_jugador else color_jugador
+            turno = color_pc
             continue
 
-        # Ejecutar el turno correspondiente
+        if turno == color_pc and not puede_pc:
+            print(f"{turno} no tiene jugadas, se salta el turno")
+            turno = color_jugador
+            continue
+
+        # Ejecutar turno
         if turno == color_jugador:
             turnoJugador(tablero, turno)
         else:
@@ -302,7 +312,7 @@ def ejecutarPartida(tablero, turno, color_jugador, color_pc, modo):
             else:
                 nivel1(tablero, turno)
 
-        # Cambiar de turno
+        # Cambiar turno
         turno = color_pc if turno == color_jugador else color_jugador
 
     mostrarResultadoFinal(tablero, color_jugador, color_pc)
