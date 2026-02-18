@@ -34,7 +34,8 @@ E8
 F8
 G8
 H4
-H6
+H6 bolivianos
+hola a todos
 E2
 D1
 C1
@@ -51,9 +52,11 @@ A2
 B7
 F1
 B3
+c
 B1
 B2
 H7
+
 
 G2
 H1
